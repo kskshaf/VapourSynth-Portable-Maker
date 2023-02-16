@@ -34,12 +34,12 @@ if ( -Not (Test-Path -Path downloads) ) {
 Push-Location -Path .\downloads
 DownloadFile -Uri $Packages.'7za'.url -OutFile $Packages.'7za'.name -Hash $Packages.'7za'.hash
 DownloadFile -Uri $Packages.python.url -OutFile $Packages.python.name -Hash $Packages.python.hash
+DownloadFile -Uri $Packages.python.liburl -OutFile 'pylib.msi' -Hash $Packages.python.libhash
 DownloadFile -Uri $Packages.vapoursynth.url -OutFile $Packages.vapoursynth.name -Hash $Packages.vapoursynth.hash
 DownloadFile -Uri $Packages.vseditor.url -OutFile $Packages.vseditor.name -Hash $Packages.vseditor.hash
 # DownloadFile -Uri $Packages.vsrepogui.url -OutFile $Packages.vsrepogui.name -Hash $Packages.vsrepogui.hash
 DownloadFile -Uri $Packages.vspreview.url -OutFile $Packages.vspreview.name -Hash $Packages.vspreview.hash
 DownloadFile -Uri $Packages.lexpr.url -OutFile $Packages.lexpr.name -Hash $Packages.lexpr.hash
-DownloadFile -Uri $Packages.getpip.url -OutFile $Packages.getpip.name
 DownloadFile -Uri $Packages.ocr.url -OutFile $Packages.ocr.name -Hash $Packages.ocr.hash
 DownloadFile -Uri $Packages.imwri.url -OutFile $Packages.imwri.name -Hash $Packages.imwri.hash
 DownloadFile -Uri $Packages.subtext.url -OutFile $Packages.subtext.name -Hash $Packages.subtext.hash
@@ -53,7 +53,15 @@ if ( Test-Path -Path .\VapourSynth\python*._pth ) {
 if ( -Not (Test-Path -Path VapourSynth\DLLs) ) {
     New-Item -Path .\VapourSynth\DLLs -ItemType Directory -Force | Out-Null
 }
+
 Expand-Archive -Path .\downloads\$($Packages.python.name) -DestinationPath .\VapourSynth -Force
+
+New-Item -Path pylib -ItemType Directory -Force | Out-Null
+Start-Process -Wait -FilePath msiexec -ArgumentList /a, $(Get-Item .\downloads\pylib.msi).FullName, /qn, /passive, /quiet, TARGETDIR=$((Get-Item .\pylib).FullName)
+New-Item -Path .\VapourSynth\Lib -ItemType Directory -Force | Out-Null
+Copy-Item -Path .\pylib\Lib\venv -Destination .\VapourSynth\Lib\ -Force -Recurse
+Copy-Item -Path .\pylib\Lib\ensurepip -Destination .\VapourSynth\Lib\ -Force -Recurse
+
 $PythonVersion = (Get-Item .\VapourSynth\python*._pth).BaseName
 $PythonEmbeddedPth = $PythonVersion + "._pth"
 $PythonPth = $PythonVersion + ".pth"
@@ -82,7 +90,8 @@ Copy-Item -Path .\subtext\x64\subtext.dll -Destination ..\VapourSynth\vapoursynt
 Pop-Location
 
 
-.\VapourSynth\python.exe .\downloads\get-pip.py --no-warn-script-location
+.\VapourSynth\python.exe -m ensurepip
+.\VapourSynth\python.exe -m pip install --upgrade pip
 $Requirements = Get-Item .\downloads\vspreview\vapoursynth-preview-$($Packages.vspreview.branch)\requirements.txt
 Set-Content -Path $Requirements (Get-Content -Path $Requirements | Select-String -Pattern 'vapoursynth' -NotMatch )
 .\VapourSynth\python.exe -m pip install -r $Requirements --no-warn-script-location
@@ -95,7 +104,7 @@ if ( Test-Path -Path .\VapourSynth\__pycache__ ) {
     Remove-Item -Path .\VapourSynth\__pycache__ -Recurse -Force
 }
 Move-Item -Path .\VapourSynth\sitecustomize.py -Destination .\VapourSynth\Lib\ -Force
-Move-Item -Path .\VapourSynth\vapoursynth.cp311-win_amd64.pyd -Destination .\VapourSynth\Lib\site-packages\ -Force
+Move-Item -Path .\VapourSynth\vapoursynth.cp311-win_amd64.pyd -Destination .\VapourSynth\Lib\ -Force
 Copy-Item -Path .\downloads\vspreview\vapoursynth-preview-$($Packages.vspreview.branch)\vspreview -Destination .\VapourSynth\Lib\site-packages\ -Recurse -Force
 # Copy-Item -Path .\downloads\VSRepoGUI\VSRepoGUI.exe -Destination .\VapourSynth\ -Force
 Copy-Item -Path .\vsrepogui.json -Destination .\VapourSynth\ -Force

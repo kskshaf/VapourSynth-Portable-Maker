@@ -7,7 +7,9 @@
     "python": {
         "name": "python-3.11.1-embed-amd64.zip",
         "url": "https://www.python.org/ftp/python/3.11.1/python-3.11.1-embed-amd64.zip",
-        "hash": "762D16B7C5CB8E55ED9AB015B8E12015D494DD1FFCAE44534F25F61DCFAC9D7E6E7A1D5E21D9284271E6114D869165D0DCD2AB4219F40A834172EE816ECD4604"
+        "hash": "762D16B7C5CB8E55ED9AB015B8E12015D494DD1FFCAE44534F25F61DCFAC9D7E6E7A1D5E21D9284271E6114D869165D0DCD2AB4219F40A834172EE816ECD4604",
+        "liburl": "https://www.python.org/ftp/python/3.11.1/amd64/lib.msi",
+        "libhash": "23DA41E02120E0B38863FC48D256CD5D45E8E060F48A698AA0F2DD1333C97668C8A568F508D36AE660625713FBA9B41F81952B2B6D60AE0298C9968D787ABEB0"
     },
     "vapoursynth": {
         "name": "VS-C-x64-R57.A7.zip",
@@ -35,10 +37,6 @@
         "name": "akarin-release-lexpr-amd64-v0.96c.7z",
         "url": "https://github.com/AkarinVS/vapoursynth-plugin/releases/download/v0.96/akarin-release-lexpr-amd64-v0.96c.7z",
         "hash": "bee93d78fdc866403c1f68d0ab294b74607a5bfae0dbe51b78377a6d30a588cf693df72cee2281bcd9203d6bd1f4d4d71a41906845b081867950b34a1b47d1aa"
-    },
-    "getpip": {
-        "name": "get-pip.py",
-        "url": "https://bootstrap.pypa.io/get-pip.py"
     },
     "ocr": {
         "name": "OCR-x64-R55.A2.7z",
