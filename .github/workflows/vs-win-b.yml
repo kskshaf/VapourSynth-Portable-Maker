@@ -1,0 +1,178 @@
+name: VS-Windows
+
+on:
+  #push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'tag to release'
+        required: false
+
+jobs:
+  build-msvc:
+    runs-on: windows-latest
+
+    steps:
+
+    - uses: microsoft/setup-msbuild@v1
+
+    - name: Clone VS
+      run: |
+        git clone https://github.com/vapoursynth/vapoursynth.git
+        cd vapoursynth
+        git checkout 329ca497b17c324eac701aa1b20652e558e5d281
+        cd ..
+
+    - name: Clone VS Dependencies
+      working-directory: vapoursynth
+      run: |
+        git clone https://github.com/AviSynth/AviSynthPlus.git --depth 1
+        git clone https://github.com/sekrit-twc/libp2p.git --depth 1
+        git clone https://github.com/vapoursynth/vsrepo.git --depth 1
+        git clone https://github.com/sekrit-twc/zimg.git --depth 1 --recurse-submodules --shallow-submodules
+
+    - name: Setup Python 3.8
+      uses: actions/setup-python@v4
+      with:
+        # Version range or exact version of a Python version to use, using SemVer's version range syntax.
+        python-version: '3.8'
+
+    - name: Get Python 3.8 Path
+      shell: bash
+      run: |
+        echo "PYTHON38_DIR=$pythonLocation" >> $GITHUB_ENV
+
+    - name: Install required Python packages & Get Python 3.8 Install Path
+      run: |
+        python -m pip install -U pip
+        pip install -U cython setuptools wheel
+        $py_install_path = (Split-Path -Path (Get-Command python.exe).Path)
+        echo "PYTHON38_PATH=$py_install_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Setup Python 3.11
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Get Python 3.11 Path
+      shell: bash
+      run: |
+        echo "PYTHON311_DIR=$pythonLocation" >> $GITHUB_ENV
+
+    - name: Install required Python packages & Get Python 3.11 Install Path
+      run: |
+        python -m pip install -U pip
+        pip install -U cython setuptools wheel
+        $py_install_path = (Split-Path -Path (Get-Command python.exe).Path)
+        echo "PYTHON_PATH=$py_install_path" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Get version number
+      working-directory: vapoursynth
+      run: |
+        echo "VS_CURRENT_RELEASE=$(python -c "from pathlib import Path; print((Path.cwd() / 'VAPOURSYNTH_VERSION').resolve().read_text().split(' ')[-1].strip().split('-')[0])")" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+    - name: Compile
+      working-directory: vapoursynth
+      run: |
+        $env:VSPYTHON38_PATH="${{ env.PYTHON38_PATH }}"
+        $env:VSPYTHON_PATH="${{ env.PYTHON_PATH }}"
+        msbuild msvc_project/VapourSynth.sln /t:Build /p:Configuration=Release /p:Platform=x64 /p:CurrentVersion=${{ env.VS_CURRENT_RELEASE }}
+
+# from AmusementClub
+    - name: Build Python plugin
+      working-directory: vapoursynth
+      run: |
+        py -3.11 -m pip install . --no-deps -v
+        py -3.8 -m pip install . --no-deps -v
+
+    - name: Build installer
+      working-directory: vapoursynth
+      run: |
+        pushd installer
+        $env:SKIP_COMPRESS="no"
+        $env:SKIP_WAIT="yes"
+        & ".\make_portable.bat"
+        pushd buildp64
+        py -3.11 -m pip install . --no-deps -v
+        py -3.8 -m pip install . --no-deps -v
+        popd
+        popd
+
+    - name: Build release
+      working-directory: vapoursynth
+      shell: bash
+      run: |
+        cp "$PYTHON311_DIR"/Lib/site-packages/vapoursynth*.pyd installer/buildp64
+        cp "$PYTHON38_DIR"/Lib/site-packages/vapoursynth*.pyd installer/buildp64
+        7z a -t7z -mx=3 ../build.7z .
+        mv installer/buildp64 upload
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-x64
+        if-no-files-found: error
+        path: build.7z
+
+    - name: Install sphinx
+      working-directory: vapoursynth
+      run: |
+        pip install -r python-requirements.txt
+
+    - name: Build Doc
+      shell: cmd
+      working-directory: vapoursynth
+      run: |
+        set SPHINXBUILD=sphinx-build
+        call docs_build.bat
+
+    - name: Build release
+      shell: bash
+      working-directory: vapoursynth
+      run: |
+        set -ex
+        mv doc/_build/html upload/doc
+
+    - name: Setup VC commands
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Copy VC Runtime Libraries
+      shell: bash
+      working-directory: vapoursynth
+      run: |
+        cd upload
+        while true; do
+          changed=false
+          for dll in *.[dD][lL][lL] *.[Ee][Xx][Ee] *.[Pp][Yy][Dd]; do
+             for dep in $(dumpbin -dependents "$dll" | grep -o -i '\(vc\|msvc\)[a-z0-9_-]*\.dll'); do
+                echo "finding $dep for $dll"
+                if ! test -f ./"$dep"; then
+                  changed=true
+                  src="$(where "$dep" | grep -i 'MSVC' | head -1)"
+                  echo "copying $src for $dep"
+                  test -f "$src" || exit 1
+                  cp -f "$src" .
+                fi
+             done
+          done
+          $changed || break
+        done
+
+    - name: Pack release
+      shell: cmd
+      run: |
+        cd vapoursynth\upload
+        7z a -t7z -mx=9 ..\..\release-x64.7z .
+
+    - name: Release
+      if: github.event_name == 'workflow_dispatch' && github.event.inputs.tag != ''
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: ${{ github.event.inputs.tag }}
+        files: release-x64.7z
+        fail_on_unmatched_files: true
+        generate_release_notes: false
+        prerelease: true
