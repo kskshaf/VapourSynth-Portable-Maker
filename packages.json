@@ -1,16 +1,16 @@
 {
     "python": {
-        "name": "python-3.11.7-embed-amd64.zip",
-        "url": "https://www.python.org/ftp/python/3.11.7/python-3.11.7-embed-amd64.zip",
-        "hash": "6A00F06411EDB5EB08AE7F740CCB8337FBE94D94AC86B266758591C5A7496E2E99A5FF0A19EEB074AD5B8D9E2ED7D16CE3C73FB5760300600E0806AE191E5876",
-        "liburl": "https://www.python.org/ftp/python/3.11.7/amd64/lib.msi",
-        "libhash": "EDDCF60F4B2D2BFA37B5D6269C544A2BFDFE02A4D2A7AF585B76D2C165CA93E07CC8A446D5893DD844EDD34BA024D6C57553D82FE1109117D39372A2BB8C5681"
+        "name": "python-3.11.8-embed-amd64.zip",
+        "url": "https://www.python.org/ftp/python/3.11.8/python-3.11.8-embed-amd64.zip",
+        "hash": "DA5F01E94D3505EEBDFD4D2E70D9CF494925199024479CC29EF144567906B2E8AD55A855B199A755318F5FB9A260F21B987A5FC85F31ACF631AF4B677921251D",
+        "liburl": "https://www.python.org/ftp/python/3.11.8/amd64/lib.msi",
+        "libhash": "FE4F692547A617FEA50E6F0A9DFA6FE58DDC0DD9EB79B5D399D4F9CA568317E210EB25C42DF8B976201844AA666868244A8DF0F1DEB2A702532EA0166761E994"
     },
     "vapoursynth": {
         "name": "release-x64.7z",
         "version": 9999,
-        "url": "https://github.com/kskshaf/VapourSynth-Portable-Maker/releases/download/20240208/release-x64.7z",
-        "hash": "D270A997400F5AF6AEE21FB584CF4936219A4498FABEA638B1C119FD671FBF784E0B004D751128A30F7138C425D69FFD206C38EC0CB1BAB1D8C07346C1531475"
+        "url": "https://github.com/kskshaf/VapourSynth-Portable-Maker/releases/download/20240221/release-x64.7z",
+        "hash": "44879906284D87C58313174CB25F215A29EC70FFB0BBA4AFCE4056DC0622293DDCCF37E062E43E58A60B134625881FB993BA2AC80A1279D2ECCDF1B2DE5B1761"
     },
     "vseditor": {
         "name": "vsedit-windows-x64.r19-mod-5-AC2.7z",
