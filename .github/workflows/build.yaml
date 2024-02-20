@@ -1,17 +1,17 @@
 name: Build
 on:
-  push:
+  #push:
   pull_request:
   workflow_dispatch:
     inputs:
       tag:
         description: 'which tag to create and release?'
-        required: true
+        required: false
         default: 'v100'
 
 jobs:
   build:
-    runs-on: windows-2019
+    runs-on: windows-latest
     steps:
       - uses: actions/checkout@v3
 

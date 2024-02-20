@@ -21,7 +21,7 @@ function DownloadFile {
 function Expand7Zip {
     param ( [object]$Path , [object]$Destination )
     Write-Output "Extracting $Path"
-    .\7za\7za.exe x "$Path" -o"$Destination" -y > $null
+    7z x "$Path" -o"$Destination" -y > $null
 }
 
 
@@ -32,7 +32,7 @@ if ( -Not (Test-Path -Path downloads) ) {
 }
 
 Push-Location -Path .\downloads
-DownloadFile -Uri $Packages.'7za'.url -OutFile $Packages.'7za'.name -Hash $Packages.'7za'.hash
+# DownloadFile -Uri $Packages.'7za'.url -OutFile $Packages.'7za'.name -Hash $Packages.'7za'.hash
 DownloadFile -Uri $Packages.python.url -OutFile $Packages.python.name -Hash $Packages.python.hash
 DownloadFile -Uri $Packages.python.liburl -OutFile 'pylib.msi' -Hash $Packages.python.libhash
 DownloadFile -Uri $Packages.vapoursynth.url -OutFile $Packages.vapoursynth.name -Hash $Packages.vapoursynth.hash
@@ -41,7 +41,7 @@ DownloadFile -Uri $Packages.vseditor.url -OutFile $Packages.vseditor.name -Hash 
 DownloadFile -Uri $Packages.vspreview.url -OutFile $Packages.vspreview.name -Hash $Packages.vspreview.hash
 DownloadFile -Uri $Packages.lexpr.url -OutFile $Packages.lexpr.name -Hash $Packages.lexpr.hash
 DownloadFile -Uri $Packages.ocr.url -OutFile $Packages.ocr.name -Hash $Packages.ocr.hash
-DownloadFile -Uri $Packages.imwri.url -OutFile $Packages.imwri.name -Hash $Packages.imwri.hash
+# DownloadFile -Uri $Packages.imwri.url -OutFile $Packages.imwri.name -Hash $Packages.imwri.hash
 DownloadFile -Uri $Packages.subtext.url -OutFile $Packages.subtext.name -Hash $Packages.subtext.hash
 DownloadFile -Uri $Packages.vsstubs.url -OutFile $Packages.vsstubs.name
 Pop-Location
@@ -76,17 +76,21 @@ Copy-Item -Path .\sitecustomize.py -Destination .\VapourSynth\ -Force
 
 
 Push-Location -Path downloads
-Expand-Archive -Path $Packages.'7za'.name -DestinationPath "7za" -Force
+# Expand-Archive -Path $Packages.'7za'.name -DestinationPath "7za" -Force
 Expand-Archive -Path $Packages.vspreview.name -DestinationPath vspreview -Force
 # Expand-Archive -Path $Packages.vsrepogui.name -DestinationPath VSRepoGUI -Force
 Expand-Archive -Path $Packages.vsstubs.name -DestinationPath vsstubs -Force
-Expand-Archive -Path $Packages.vapoursynth.name -Destination ..\VapourSynth -Force
+Expand7Zip -Path $Packages.vapoursynth.name -Destination ..\VapourSynth -Force
 Expand7Zip -Path $Packages.vseditor.name -Destination ..\VapourSynth\
 Expand7Zip -Path $Packages.lexpr.name -Destination ..\VapourSynth\vapoursynth64\plugins\
-Expand7Zip -Path $Packages.ocr.name -Destination ..\VapourSynth\vapoursynth64\coreplugins\
-Expand7Zip -Path $Packages.imwri.name -Destination ..\VapourSynth\vapoursynth64\coreplugins\
-Expand-Archive -Path $Packages.subtext.name -DestinationPath subtext -Force
-Copy-Item -Path .\subtext\x64\subtext.dll -Destination ..\VapourSynth\vapoursynth64\coreplugins\ -Force
+Expand7Zip -Path $Packages.ocr.name -Destination ..\VapourSynth\vapoursynth64\plugins\
+# Expand7Zip -Path $Packages.imwri.name -Destination ..\VapourSynth\vapoursynth64\plugins\
+# unknown error
+mkdir subtext ; cd subtext
+7z x ..\subtext-r5.7z
+cd ..
+#
+Copy-Item -Path .\subtext\win64\SubText.dll -Destination ..\VapourSynth\vapoursynth64\coreplugins\ -Force
 Pop-Location
 
 
@@ -114,7 +118,7 @@ New-Item -Path .\VapourSynth\VapourSynthScripts -ItemType Directory -Force | Out
 .\VapourSynth\python.exe fix-python-path.py VapourSynth\Scripts
 
 Push-Location -Path downloads
-Remove-Item -Path 7za -Recurse -Force
+# Remove-Item -Path 7za -Recurse -Force
 Remove-Item -Path vspreview -Recurse -Force
 # Remove-Item -Path VSRepoGUI -Recurse -Force
 Remove-Item -Path vsstubs -Recurse -Force
